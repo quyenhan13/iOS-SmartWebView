@@ -8,23 +8,35 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # 1. Checkout code
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Build app (no signing)
+      # 2. List schemes (để debug nếu cần)
+      - name: List schemes
+        run: xcodebuild -list
+
+      # 3. Build app (KHÔNG cần cert)
+      - name: Build app
         run: |
-          xcodebuild -scheme SmartWebView \
+          xcodebuild \
+          -scheme iOS-SmartWebView \
           -configuration Release \
           -sdk iphoneos \
-          -archivePath build/App.xcarchive archive \
+          -archivePath build/App.xcarchive \
+          archive \
           CODE_SIGNING_ALLOWED=NO
 
+      # 4. Tạo file IPA
       - name: Package IPA
         run: |
           mkdir Payload
           cp -r build/App.xcarchive/Products/Applications/*.app Payload/
           zip -r app.ipa Payload
 
-      - uses: actions/upload-artifact@v4
+      # 5. Upload IPA
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
         with:
           name: ipa
           path: app.ipa
